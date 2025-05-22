@@ -1,0 +1,22 @@
+{
+  "name": "devtinder-backend",
+  "version": "1.0.0",
+  "description": "DevTinder is inspired by tinder app that connects developers accross the World.  ",
+  "main": "index.js",
+  "scripts": {
+    "start" : "node app.js",
+    "dev" : "nodemon app.js"
+  },
+  "keywords": [
+    "DevTinder",
+    "nodejs",
+    "mongo",
+    "react",
+    "javascript"
+  ],
+  "author": "Rinkal Singapuri",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
