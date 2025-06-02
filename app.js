@@ -10,48 +10,30 @@
 
 const express = require("express");
 const connect = require("./config/database")
+const updateMaritalField = require("./updateSchema/updateSchema.js")
 
 const app = express();
+app.use(express.json());
 
-const User = require("./model/model.js")
+const authRouter = require("./router/authRouter.js")
+const profileRouter = require("./router/profileRouter.js")
+const requestsRouter = require("./router/requestsRouter.js")
+const userRouter = require("./router/userRouter.js")
 
-// express.json() : express.json() is a middleware function built into Express.js that parses incoming JSON payloads and puts the parsed data into req.body.
-// It parses the collected data using JSON.parse().
-app.use(express.json())
-
-app.post("/signUp", async (req, res) => {
-
-    // Here The flow : we POST the data to API, API PUSH the data to database, meaning database GET the data from end user.
-    // The expected flow for dynamic working: API POST the data to server. server GET the data from end user, then PUSH that data to database.
-
-    // Static PUSH to database
-    // const userData = new User({
-    //     firstName: "krina",
-    //     lastName: "sigapuri",
-    //     email: "krina@gmail.com",
-    //     passWord: "123456",
-    // });
+{
+    // route handlers
+    app.use("/", authRouter);
+    app.use("/", profileRouter);
+    app.use("/", requestsRouter);
+    app.use("/", userRouter);
+}
 
 
+{
+    // To update the schema
+    updateMaritalField()
 
-    // Here we sent the data from body of the req in JSON format. Server cannot read JSON data so we need middleware. express.json() is a middleware that powers server to read the data from the end user as that data is converted into object by express.json().
-    // without express.json(), undefined will be printed on console.
-    console.log(req.body.age);
-
-    // Dynamic PUSH to database
-    const userData = new User(req.body);
-
-    
-    try {
-        await userData.save();
-        // await req.body.save()  //incorrect way to PUSH the dynamic data into database
-        res.send("userData successfully sent!")
-    } catch (err) {
-        res.status(400).send(`something went wrong! ERROR : ${err}`)
-    }
-
-})
-
+}
 
 connect()
     .then(() => {
