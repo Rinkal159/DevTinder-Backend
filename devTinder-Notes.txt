@@ -15,7 +15,7 @@
     -> isMarried (optional)
 
 
-***important :
+***important : 
 --------------
 
 If by chance, you have defined any field as unique, and later you want to remove that uniqueness constraint, then in the mongo shell run following commands :
