@@ -5,7 +5,7 @@ const { User } = require("../model/model");
 const bcrypt = require("bcrypt");
 const userAuth = require("../authentication/auth");
 const cookieParser = require("cookie-parser")
-const {encryptPassword, valodationToNotAllowInvalidFields} = require("../helper validation funcs/validations")
+const { encryptPassword, valodationToNotAllowInvalidFields } = require("../helper validation funcs/validations")
 
 // express.json() : express.json() is a middleware function built into Express.js that parses incoming JSON payloads and puts the parsed data into req.body.
 // for POST
@@ -74,9 +74,7 @@ authRouter.use(cookieParser());
             // to handle huge length of tech ineterests
             if (techInterests.length > 20) {
                 throw new Error(`Overloaded interests! They must not exceed 20`)
-            } else if (techInterests.length <= 0) {
-                throw new Error(`Minimum one tech interest is required`)
-            }
+            } 
 
 
 
@@ -95,11 +93,19 @@ authRouter.use(cookieParser());
 
 
             await userData.save();
+
+            const user = await User.findOne({ email: email });
             // await req.body.save()  //incorrect way to PUSH the dynamic data into database
-            res.send("userData successfully sent!")
+            res.json({
+                message: `${user.firstName}, You have successfully signed up!`,
+                data: user
+
+            })
 
         } catch (err) {
-            res.status(400).send(`something went wrong! ${err}`)
+            res.status(400).json({
+                message : err.message
+            })
         }
 
         next()
@@ -113,6 +119,7 @@ authRouter.use(cookieParser());
     authRouter.post("/login", async (req, res, next) => {
         try {
             const { email, passWord } = req.body;
+
             const emailCheck = await User.findOne({ email: email });
 
             // calling email validation function
@@ -136,7 +143,11 @@ authRouter.use(cookieParser());
                     sameSite: "strict" //Only send cookies on same-site requests
                 });
 
-                res.send("You're successfully logged in!")
+                res.json({
+                    message: `${emailCheck.firstName}, You have successfully logged in!`,
+                    data: emailCheck
+
+                })
 
 
             } else {

@@ -13,6 +13,24 @@ const connect = require("./config/database")
 const updateMaritalField = require("./updateSchema/updateSchema.js")
 
 const app = express();
+
+
+/**  CORS error blocks cross origin requests meaning even port is diffrent, our frontend cannot connect with backend.
+ * So, to allow cross origin request, cors middleware helps.
+ * 
+ * everything works fine But even with the cors, our token will not send to application cause cookie setup only allows to send token to secure sites(https)
+ * thus we need to config the cors
+ * config : origin defines the frontend site to add that site into whitelist so that backend trust the frontend and send cookies.
+ * credentials true makes the backend feel secure about frontend port.
+ * but not only backend setup will run everything smooth, we need to make changes in frontend too. the changes are : in axios request, we need to add "withcredentials : true" to access that cookie.
+ **/
+
+const cors = require("cors");
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
+
 app.use(express.json());
 
 const authRouter = require("./router/authRouter.js")

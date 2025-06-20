@@ -28,14 +28,14 @@ const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: [true, "First name is required"],
-        minLength: [4, "Name must not be less than 4 characters"],
-        maxLength: [50, "Name must not be greater than 50 characters"]
+        minLength: [4, "First Name must not be less than 4 characters"],
+        maxLength: [50, "First Name must not be greater than 50 characters"]
     },
     lastName: {
         type: String,
         required: [true, "Last name is required"],
-        minLength: [4, "Name must not be less than 4 characters"],
-        maxLength: [50, "Name must not be greater than 50 characters"]
+        minLength: [4, "Last Name must not be less than 4 characters"],
+        maxLength: [50, "Last Name must not be greater than 50 characters"]
     },
     email: {
 
@@ -95,6 +95,12 @@ const userSchema = new mongoose.Schema({
     },
     techInterests: {
         type: [String],
+        validate : {
+            validator : function(arr) {
+                return Array.isArray(arr) && arr.length>0
+            },
+            message: "At least one tech interest is required"
+        },
         required: [true, "Tech Interest is required. e.g. Programming languages, Hackathons"]
     },
     isMarried: {

@@ -27,6 +27,8 @@ const populateFilter = "firstName lastName";
 
             const id = req.id;
             const user = req.user;
+
+            // not included users in response
             const allUserData = await ConnectionRequest.find({
                 $or: [
                     { senderID: id },
@@ -41,7 +43,7 @@ const populateFilter = "firstName lastName";
                 arr.push(user.receiverID);
             })
 
-
+            // get the feed
             const expectedUsers = await
                 User.find({ $and: [{ _id: { $nin: arr } }, { _id: { $ne: id } }] })
                     .select("firstName lastName age gender techInterests")
@@ -72,6 +74,7 @@ const populateFilter = "firstName lastName";
             const id = req.id;
             const loggedInUser = req.user;
 
+            // get all requests you received
             const yourRequests = await ConnectionRequest
                 .find({ receiverID: id, requestStatus: "interested" })
                 .populate("senderID", populateFilter)
@@ -116,6 +119,7 @@ const populateFilter = "firstName lastName";
             const id = req.id;
             const loggedInUser = req.user;
 
+            // get all requests you sent
             const yourRequests = await ConnectionRequest
                 .find({ senderID: id, requestStatus: "interested" })
                 .populate("receiverID", populateFilter)
@@ -160,6 +164,7 @@ const populateFilter = "firstName lastName";
             const id = req.id;
             const loggedInUser = req.user;
 
+            // find accepted request profile either you sent the request and receiver accepted or you received the request and accepted and made connection
             const yourRequests = await ConnectionRequest.find({
                 $or: [
                     { receiverID: id },
@@ -193,36 +198,6 @@ const populateFilter = "firstName lastName";
                 connections: connections
             });
 
-
-            // let arr = [];
-
-            // yourRequests.forEach((req) => {
-            //     if (req.senderID.toString() === id) {
-            //         arr.push(req.receiverID)
-            //     } else {
-            //         arr.push(req.senderID);
-
-            //     }
-
-            // })
-
-            // if (arr.length <= 0) {
-            //     return res.status(400).json({
-            //         message: `${loggedInUser.firstName}, Your connection slot is empty! Send connection requests, make connections!!`
-            //     })
-            // }
-
-            // const usersWhoSentRequests = await User.find({ _id: { $in: arr } });
-
-            // const extractedNames = [];
-            // usersWhoSentRequests.forEach((name) => {
-            //     extractedNames.push(`${name.firstName} ${name.lastName}`)
-            // })
-
-            // res.json({
-            //     messgae: `${loggedInUser.firstName}, Your conenctions are successfully fetched!`,
-            //     connections: extractedNames
-            // });
 
         } catch (err) {
             res.status(400).send(`Something went wrong! ${err}`)
