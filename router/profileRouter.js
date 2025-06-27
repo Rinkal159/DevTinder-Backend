@@ -2,7 +2,7 @@ const express = require("express");
 const profileRouter = express.Router();
 
 const { User } = require("../model/model");
-const userAuth = require("../authentication/auth");
+const userAuth = require("../middleware/auth");
 const cookieParser = require("cookie-parser");
 const { encryptPassword, valodationToNotAllowInvalidFields, checkDuplicationDuringUpdation } = require("../helper validation funcs/validations")
 
@@ -17,13 +17,15 @@ profileRouter.use(cookieParser())
             const userData = req.user;
 
             if (!userData) {
-                throw new Error("user not founr")
+                throw new Error("user not fount")
             }
 
             res.json(userData);
 
         } catch (err) {
-            res.status(400).send(`something went wring. ${err}`);
+            res.status(400).json({
+                message: err.message
+            })
 
         }
     })
@@ -51,10 +53,8 @@ profileRouter.use(cookieParser())
         try {
             const id = req.id;
 
-            // if you want to enable validations during updatation, runValidators option need to be defined.
-
             // the logic here is To not allow the data to update in database that is not the part of the schema or the data from age, email and password
-            const allowedFieldsForUpdation = ["firstName", "lastName", "gender", "state", "occupation", "techInterests", "isMarried"]
+            const allowedFieldsForUpdation = ["img", "firstName", "lastName", "gender", "state", "occupation", "techStacks", "goals"]
 
             const invalidKeysToUpdate = valodationToNotAllowInvalidFields(allowedFieldsForUpdation, req);
             if (invalidKeysToUpdate.length > 0) {
@@ -110,13 +110,8 @@ profileRouter.use(cookieParser())
             const checkPassword = await user.verifyPassword(currentPassword);
 
             if (!checkPassword) {
-                throw new Error("Invalid password");
+                throw new Error("Invalid current password");
             }
-
-
-            // encrypting the new password by bcrypt.hash
-            const newpw = await encryptPassword(newPassword);
-
 
             // ensuring new password and confirm password are same
             if (newPassword !== confirmPassword) {
@@ -124,12 +119,16 @@ profileRouter.use(cookieParser())
             }
 
 
+            // encrypting the new password by bcrypt.hash
+            const newpw = await encryptPassword(newPassword);
+
+
             // updating in database
             await User.updateOne({ _id: id }, { passWord: newpw }, { runValidators: true });
             res.json({
-                message : "password changed successfully!"
+                message: "password changed successfully!"
             })
-            
+
 
         } catch (err) {
             res.status(400).send(`Something went wrong. ${err}`)
