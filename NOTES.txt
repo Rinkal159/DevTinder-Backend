@@ -1,0 +1,225 @@
+*** Database connection :
+___________________________
+
+→ mongoose model is like a class where we create instances from it or it is a collection and we create documents from it.
+
+→ first, we connect to the database in config folder.
+→ second, we connect the database to the server. first database should be connected and second the server. means the connect function will exeute in app where ".then" first indicates that the database is successfully connected and then the listen part of the server will execute.
+→ third, we create mongoose schemas in model folder, then create model and export it.
+
+→ _id and __v are automatically created by mongoDB.
+→ An ObjectId is a 12-byte identifier => 12 bytes = 24 hex characters
+→ __v stand for version. Each time you update the document, __v increments. initial value is 0.
+
+
+*** express.JSON() :
+____________________
+
+→ express.json() is a middleware function built into Express.js that parses incoming JSON payloads and puts the parsed data into req.body.
+→ for POST, It parses the collected data using JSON.parse().
+
+
+*** cookie-parser :
+___________________
+
+→ cookie-parser makes it easy for your server to see what's inside those cookies.
+
+
+*** POST data to database :
+___________________________
+
+^ Static PUSH to database 👇:
+
+const userData = new User({
+    firstName: "krina",
+    lastName: "sigapuri",
+    email: "krina@gmail.com",
+    passWord: "123456",
+});
+
+^ Dynamic push to database 👇:
+
+→ Dynamic working: Server GET the data from end user through POST, then PUSH that data to database.
+
+→ Here we sent the data from body of the req in JSON format. Server cannot read JSON data so we neemiddleware. express.json() is a middleware that powers server to read the data from the end user athat data is converted into object by express.json() and then PUSH the data to middleware.
+without express.json(), undefined will be printed on console.
+
+-> await req.body.save()  // incorrect way to PUSH the dynamic data into database
+
+
+
+*** ENCRYPT PASSWORD :
+______________________
+
+^ HASH : 
+    → A hash is a fixed-length string of characters generated from any input like a passwordusing a one-way function. You can’t “unhash” it. It's same for 2 or more same passwords.
+^ SALT : 
+    → A salt is a random string added to the password before hashing. It’s different for evepassword.
+^ Rainbow table attack : 
+    → A rainbow table is a precomputed list of common passwords and their havalues. Hackers use it to reverse-engineer passwords from their hashes.
+
+
+*** CORS :
+___________
+
+→ CORS error blocks cross origin requests meaning even port is diffrent, our frontend cannot connect with backend.
+→ So, to allow cross origin request, cors middleware helps.
+
+→ everything works fine But even with the cors, our token will not send to application cause cookie setup only allows to send token to secure sites(https)
+→ thus we need to config the cors
+
+→ config : origin defines the frontend site to add that site into whitelist so that backend trust the frontend and send cookies.
+→ credentials true makes the backend feel secure about frontend port.
+→ but not only backend setup will run everything smooth, we need to make changes in frontend too. the changes are : in axios request, we need to add "withcredentials : true" to access that cookie.
+
+
+*** Schema validation :
+_______________________
+
+
+^ "type": 
+    → type of the field
+
+^ "required" : 
+    → mandatory or not
+
+^ "unique" : 
+    → gives unique identity, meaning no same data again
+
+^ "default" : 
+    → set default values, if not entered value, then that value will push to database
+
+^ "lowercase", "uppercase", "trim" : 
+    → for string type fields
+
+^ "minLength", "maxLength" : 
+    → minimum or maximum length of the string field
+
+^ "min", "max" : 
+    → minimum or maximum validation for number and date field
+
+→ type, require, unique, default, min, max, minLength, maxLength, lowercase, uppercase, trim, match
+
+→ some predefined vaidations allow array values where first value is the value of that validation and second value is message that will show when the field value is not validate.
+
+→ required, min, max, minLength, maxLength, match, unique can have array access.
+
+→ Timestamps is the second parameter that allows you to be aware of when the field is created and when it is updated.
+
+^ unique :
+    → unique gives power to not accept two same email ids, if one is registred, then that one cannot register again.
+without trim() mongo will assume two same email ids are different, just because one has trailing spaceand one has not.
+therefore , whenever you define unique, define trim too with strings.
+
+→ if you want to enable validations during updatation, runValidators option need to be defined.
+
+
+?---------------------------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------------------
+
+
+___________________________
+                           |
+*** PREVIOUS NOTES MERGE : |
+___________________________|
+
+
+^ 1. POST : Create an Account
+    -> firstName
+    -> lastName
+    -> email (cannot change)
+    -> password
+    -> confirm password
+
+^ 2. POST : Create a Profile
+    -> by default values : firstName, lastName and email
+    -> Username (only one change in a year)
+    -> age (cannot change)
+    -> gender
+    -> occupation
+    -> techInterests
+    -> isMarried (optional)
+
+
+***important : 
+______________
+
+If by chance, you have defined any field as unique, and later you want to remove that uniqueness constraint, then in the mongo shell run following commands :
+
+1. go to your database (show dbs -> use <db where your collection is>)
+2. run this command to final check whether your expected schema is unique or not :
+    db.<collection name>.getIndexes()
+3. if that schema is unique, run this command :
+    db.<collection name>.dropIndex(<name of that schema showing below the key on mongo shell>)
+
+
+*** JWT AND COOKIE :
+____________________
+
+->  Every time the user sends the request to the server to get some data or update or delete some data,
+    server needs to aunthenticate the user. 
+->  without a token or a cookie, each time user needs to login with his email id and password. then after the data will show, remove or update. Headache right?
+->  token and cookie makes this work easier.
+->  when user logs in, a JWT token wrapped inside the cookie will be generated and with each API either for updating the profile, or getting the profile or sending connection request, each time that cookie with token sends to the server, server authenticate it and sends back the response.
+-> You don’t need to log in again each time.
+->  if authentication fails, or cookie expires, the server tells user to please log in.
+
+-> Whenever a user logging in, server will create a token, wrapped it inside the cookie and sends back, then browser will store the cookie, any request will come from the site then cookie will be sent along to the server, server authenticate the cookie and then do things for what the request is meant to send.
+
+
+^ JWT(JSON Web Token) : 
+_______________________
+
+    - A JWT is a "self-contained" token used to securely transmit information between a client and a server.
+    - JWT is a self-service.
+    - it contains 3 things : 
+        1. header
+        2. payloads(data of the user)
+        3. signature
+    - There are two important JWT works : 
+        1. sign : to generate the token 
+                It takes two parameters : what needs to be hide and secret key
+        2. verify : to authenticate the token
+                It takes two parameter : the destructured token and the secret key
+                It will not give a boolean result, but the value that was hide by the JWT sign.
+
+
+^ COOKIE :
+___________
+
+    - A cookie is a small piece of data that a server sends to the "browser", which the "browser" stores and "automatically" sends back with every request to that server.
+    - Advantages :
+        - Browser stores the cookie.
+        - Broweser automatically sends the cookie to the server.
+        - Track user preferences.
+        - Cookie can be set to expire. meaning, when the expiration period comes(like after 15 mins, or after 1 day), then browser will not send the cookie to the server, so the authentication failes, server tells the user to please log in to generate another cookie with token.
+
+    -cookie has trwo types:
+    1. session cookie: when the website is close, and when you reopen that site, you will be called to login again.
+    2. persistent cookie: no relation with site close or reopen, it will expire based on time, like in one day or one week.
+
+
+*** WHOLE PROCESS :
+____________________
+
+1. User successfully logged in
+2. JWT token will generate. [ jwt.sign(the data that will hide, secret key) ]
+3. Cookie wrapped the token inside it. [ res.cookie(name, value) ]
+4. Browser send the cookie along with API. 
+5. authentication process will begin.
+6. server reades the cookie(req.cookies)
+7. destructuring the token
+8. authentication through jwt.verify(token, secret key )
+9. if authentication get success, then it returns the hidden value that was hidden by jwt.sign.
+
+
+*** Set expiration on whom?  JWT or Cookie?
+___________________________________________
+
+^ Best practice is to set the expiration option on "both".
+
+-> If expiration is set on only JWT then cookie will send the token automatically after every API,wasting bandwidth.
+-> If expiration is set on only Cookie then token will never expire, increasing the risk of extracting the old token by an unauthorized person.
+
+-> JWT expiration is checked by Server when the token is sent to it for decoding or authentication
+-> Cookie expiration is checked by the browser, it won't send expired cookies with request.
