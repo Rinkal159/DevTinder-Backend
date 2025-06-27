@@ -3,7 +3,7 @@ const userRouter = express.Router();
 
 const { User } = require("../model/model");
 const { ConnectionRequest } = require("../model/connectRequest")
-const userAuth = require("../authentication/auth");
+const userAuth = require("../middleware/auth");
 const cookieParser = require("cookie-parser");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -12,58 +12,6 @@ userRouter.use(cookieParser())
 
 const populateFilter = "firstName lastName";
 
-{
-    // GET /user/feed
-
-    userRouter.get("/user/feed", userAuth, async (req, res) => {
-        try {
-            let page = parseInt(req.query.page) || 1;
-            let limit = parseInt(req.query.limit) || 10;
-            let skip = (page - 1) * 10;
-
-            if (limit > 10 || limit < 0) {
-                limit = 10;
-            }
-
-            const id = req.id;
-            const user = req.user;
-
-            // not included users in response
-            const allUserData = await ConnectionRequest.find({
-                $or: [
-                    { senderID: id },
-                    { $and: [{ receiverID: id }, { requestStatus: { $ne: "interested" } }] }
-                ]
-            }).select("senderID receiverID");
-
-
-            let arr = [];
-            allUserData.forEach((user) => {
-                arr.push(user.senderID);
-                arr.push(user.receiverID);
-            })
-
-            // get the feed
-            const expectedUsers = await
-                User.find({ $and: [{ _id: { $nin: arr } }, { _id: { $ne: id } }] })
-                    .select("firstName lastName age gender techInterests")
-                    .skip(skip)
-                    .limit(limit)
-
-
-            res.json({
-                message: `${user.firstName}, Your feed : `,
-                Users: expectedUsers
-            })
-
-        }
-
-
-        catch (err) {
-            res.status(400).send(`Something went wrong! ${err}`)
-        }
-    })
-}
 
 {
     //GET /user/receivedRequest
@@ -79,6 +27,8 @@ const populateFilter = "firstName lastName";
                 .find({ receiverID: id, requestStatus: "interested" })
                 .populate("senderID", populateFilter)
 
+                console.log(yourRequests);
+                
 
             let usersWhoSentRequests = [];
             let interestedRequestsProfile = [];
@@ -91,9 +41,9 @@ const populateFilter = "firstName lastName";
             const numberOfUsers = usersWhoSentRequests.length;
 
             // check zero received requests
-            if(numberOfUsers===0) {
+            if (numberOfUsers === 0) {
                 return res.json({
-                    message : `${loggedInUser.firstName}, You have received connection requests from ${numberOfUsers} dev`
+                    message: `${loggedInUser.firstName}, You have received connection requests from ${numberOfUsers} dev`
                 })
             }
 
@@ -137,9 +87,9 @@ const populateFilter = "firstName lastName";
             const numberOfUsers = usersWhoReceivedRequests.length;
 
             // check zero sent requests
-            if(numberOfUsers===0) {
+            if (numberOfUsers === 0) {
                 return res.json({
-                    message : `${loggedInUser.firstName}, You have sent connection requests to ${numberOfUsers} dev`
+                    message: `${loggedInUser.firstName}, You have sent connection requests to ${numberOfUsers} dev`
                 })
             }
 
@@ -187,9 +137,9 @@ const populateFilter = "firstName lastName";
             })
 
             // check zero connections
-            if(connections.length==0){
+            if (connections.length == 0) {
                 return res.json({
-                    message : `${loggedInUser.firstName}, You don't have any connection yet! Send connection requests, make connections!!`
+                    message: `${loggedInUser.firstName}, You don't have any connection yet! Send connection requests, make connections!!`
                 })
             }
 
