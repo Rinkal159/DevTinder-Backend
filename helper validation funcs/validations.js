@@ -38,18 +38,3 @@ const checkDuplicationDuringUpdation = async (req) => {
 
 
 module.exports = { encryptPassword, valodationToNotAllowInvalidFields, checkDuplicationDuringUpdation };
-
-
-// check duplicate requests from sender to receiver
-// const duplicateFromSender = await ConnectionRequest.find({ senderID: senderID, receiverID: receiverID })
-// console.log(duplicateFromSender);
-
-// if (duplicateFromSender.length > 0) {
-//     return res
-//         .status(400)
-//         .json({
-//             message: `${sender.firstName.toUpperCase()}, You have already sent connection request to ${receiver.firstName.toUpperCase()}`
-//         });
-
-// }
-// check duplicate requests
