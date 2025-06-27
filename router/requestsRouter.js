@@ -3,7 +3,7 @@ const requestsRouter = express.Router();
 
 const { ConnectionRequest } = require("../model/connectRequest")
 const { User } = require("../model/model")
-const userAuth = require("../authentication/auth")
+const userAuth = require("../middleware/auth")
 const cookieParser = require("cookie-parser");
 
 requestsRouter.use(cookieParser())
@@ -18,6 +18,9 @@ requestsRouter.use(cookieParser())
             const senderID = req.id;
             const receiverID = req.params.receiverID;
             const requestStatus = req.params.requestStatus;
+
+            console.log(requestStatus);
+
 
 
             // sender profile
@@ -35,21 +38,11 @@ requestsRouter.use(cookieParser())
             }
 
 
-            // not allow outsider status
-            const allowedStatus = ["interested", "ignored"];
-            if (!allowedStatus.includes(requestStatus)) {
-                throw new Error(`Request status : ${requestStatus} is invalid`)
-            }
-
-
             // check existing request of sender to same receiver. 
             const existingRequestOfSender = await ConnectionRequest.findOne({ senderID: senderID, receiverID: receiverID });
 
-            if (existingRequestOfSender) {
-                console.log(`existing request status : ${existingRequestOfSender.requestStatus}`);
-                console.log(`current request status : ${requestStatus}`);
 
-                const requestProfile = await ConnectionRequest.findOne({ senderID, receiverID });
+            if (existingRequestOfSender) {
 
                 if (requestStatus === existingRequestOfSender.requestStatus) {
                     if (requestStatus === "interested") {
@@ -59,31 +52,27 @@ requestsRouter.use(cookieParser())
                     }
 
                 }
-                else {
+                else if (requestStatus === "ignored" && existingRequestOfSender.requestStatus === "interested") {
+                    await ConnectionRequest.updateOne({ _id: existingRequestOfSender.id }, { requestStatus: requestStatus })
 
-                    if (requestStatus === "ignored") {
-                        await ConnectionRequest.updateOne({ _id: requestProfile.id }, { requestStatus: requestStatus })
+                    return res.json({
+                        message: `${sender.firstName.toUpperCase()}, you have successfully changed the request status from ${existingRequestOfSender.requestStatus.toUpperCase()} to ${requestStatus.toUpperCase()}`
 
-                        return res.json({
-                            message: `${sender.firstName.toUpperCase()}, you have successfully changed the request status from ${existingRequestOfSender.requestStatus.toUpperCase()} to ${requestStatus.toUpperCase()}`
-
-                        })
-                    } else {
-                        return res.json({
-                            message: `${sender.firstName.toUpperCase()}, you cannot change the request status from ${existingRequestOfSender.requestStatus.toUpperCase()} to ${requestStatus.toUpperCase()}`
-
-                        })
-
-                    }
+                    })
                 }
+
             }
 
-
             // check existing request of receiver to sender who is trying to send request to that receiver
-            const ExistingRequestOfReceiverTosender = await ConnectionRequest.find({ senderID: receiverID, receiverID: senderID })
 
-            if (ExistingRequestOfReceiverTosender.length > 0) {
-                throw new Error(`${sender.firstName.toUpperCase()}, You have already received connection request from ${receiver.firstName.toUpperCase()}`)
+            /** PENDING NEW FEATURE */
+            const ExistingRequestOfReceiverTosender = await ConnectionRequest.findOne({ senderID: receiverID, receiverID: senderID })
+
+            if (ExistingRequestOfReceiverTosender) {
+
+                if (ExistingRequestOfReceiverTosender.requestStatus === "interested") {
+                    throw new Error(`${sender.firstName.toUpperCase()}, You have already received connection request from ${receiver.firstName.toUpperCase()}`)
+                }
             }
 
 
@@ -94,13 +83,12 @@ requestsRouter.use(cookieParser())
             })
 
             await requestData.save();
+            res.json({
+                // message: `${sender.firstName.toUpperCase()}, You have successfully SENT Connection request to ${receiver.firstName.toUpperCase()} !`,
+                data: receiver
+            })
 
-            if (requestStatus === "interested") {
-                res.json({ message: `${sender.firstName.toUpperCase()}, You have successfully SENT Connection request to ${receiver.firstName.toUpperCase()} !` })
 
-            } else {
-                res.json({ message: `${sender.firstName.toUpperCase()}, You have successfully IGNORED Connection request to ${receiver.firstName.toUpperCase()} !` })
-            }
 
         } catch (err) {
             res.status(400).send(`Something went wrong! ${err}`)
