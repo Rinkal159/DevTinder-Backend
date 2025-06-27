@@ -5,12 +5,15 @@ async function userAuth(req, res, next) {
     try {
         const cookie = req.cookies;
         const { token } = cookie;
+        
 
         if (!token) {
-            throw new Error("Your session is expired. Please log in.");
+            return res.status(401).json({
+                message : "Your session is expired. Please log in."
+            })
         }
 
-        const decodedData = await jwt.verify(token, "SECRET@VERYsecret123");
+        const decodedData = await jwt.verify(token, process.env.JWT_SECRETKEY);
         
         const id = decodedData._id;
 
