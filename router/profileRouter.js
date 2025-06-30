@@ -38,7 +38,10 @@ profileRouter.use(cookieParser())
         try {
             const id = req.id;
             await User.findByIdAndDelete(id);
-            res.send("Deleted user seccessfully")
+            res.json({
+                message : "Profile deleted successfully!",
+                data:null
+            });
 
         } catch (err) {
             res.status(400).send(`something went wrong. ${err}`)
@@ -89,13 +92,17 @@ profileRouter.use(cookieParser())
 {
     // PATCH /profile/password/update
 
-    profileRouter.patch("/profile/password/update", userAuth, async (req, res) => {
+    profileRouter.post("/profile/password/update", userAuth, async (req, res) => {
         try {
 
             const id = req.id;
             const user = req.user;
 
             const { currentPassword, newPassword, confirmPassword } = req.body;
+
+            if(!currentPassword || !newPassword || !confirmPassword) {
+                throw new Error("All input fields are required!");
+            }
 
             // not allow outsider fields
             const allowedFieldsForUpdation = ["currentPassword", "newPassword", "confirmPassword"]
@@ -110,7 +117,7 @@ profileRouter.use(cookieParser())
             const checkPassword = await user.verifyPassword(currentPassword);
 
             if (!checkPassword) {
-                throw new Error("Invalid current password");
+                throw new Error("Current password is not correct!");
             }
 
             // ensuring new password and confirm password are same
@@ -125,13 +132,15 @@ profileRouter.use(cookieParser())
 
             // updating in database
             await User.updateOne({ _id: id }, { passWord: newpw }, { runValidators: true });
-            res.json({
-                message: "password changed successfully!"
-            })
 
+            const updatedUser = await User.findById({_id : id});
+
+            res.json(updatedUser);
 
         } catch (err) {
-            res.status(400).send(`Something went wrong. ${err}`)
+            res.status(400).json({
+                message : err.message
+            })
         }
     })
 }
