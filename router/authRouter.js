@@ -41,6 +41,13 @@ authRouter.use(cookieParser());
 
             const { firstName, lastName, email, passWord, img, state, age, gender, occupation, techStacks, isMarried, goals } = req.body;
 
+            if (!Array.isArray(techStacks) && techStacks.length === 0) {
+                throw new Error(`Tech Stack is required.`)
+            }
+            if (!Array.isArray(goals) && goals.length === 0) {
+                throw new Error(`Goal is required.`)
+            }
+
             // Encrypt the password
             const hashpw = await encryptPassword(passWord);
 
@@ -62,8 +69,6 @@ authRouter.use(cookieParser());
 
             await userData.save();
 
-
-
             const user = await User.findOne({ email: email });
 
             // TOKEN
@@ -71,13 +76,13 @@ authRouter.use(cookieParser());
 
             // COOKIE
             res.cookie("token", token, {
-                maxAge: 3600 * 1000, //3600= 1 hr in second, 3600*1000 =1 hr in miliseconds
+                maxAge: 36000 * 1000, //3600= 1 hr in second, 3600*1000 =1 hr in miliseconds
                 secure: true, //only send the cookies over HTTPS, not HTTP
                 httponly: true, //JavaScript cannot access this cookie
                 sameSite: "strict" //Only send cookies on same-site requests
             });
 
-            
+
             res.status(200).json({
                 data: user
             })
@@ -101,13 +106,17 @@ authRouter.use(cookieParser());
 
             const emailCheck = await User.findOne({ email: email });
 
+
             // calling email validation function
             if (!emailCheck) {
                 throw new Error("Please check email and password.")
             }
 
+
             // calling password validation function
             const result = await emailCheck.verifyPassword(passWord);
+
+
 
             if (result) {
 
@@ -116,7 +125,7 @@ authRouter.use(cookieParser());
 
                 // COOKIE
                 res.cookie("token", token, {
-                    maxAge: 3600 * 1000, //3600= 1 hr in second, 3600*1000 =1 hr in miliseconds
+                    maxAge: 36000 * 1000, //3600= 1 hr in second, 3600*1000 =1 hr in miliseconds
                     secure: true, //only send the cookies over HTTPS, not HTTP
                     httponly: true, //JavaScript cannot access this cookie
                     sameSite: "strict" //Only send cookies on same-site requests
@@ -182,7 +191,7 @@ authRouter.use(cookieParser());
             const allUserData = await ConnectionRequest.find({
                 $or: [
                     { senderID: id },
-                    { $and: [{ receiverID: id }, { requestStatus: { $ne: "interested" } }] }
+                    { receiverID: id }
                 ]
             }).select("senderID receiverID");
 
@@ -197,8 +206,8 @@ authRouter.use(cookieParser());
             const expectedUsers = await
                 User.find({ $and: [{ _id: { $nin: arr } }, { _id: { $ne: id } }] })
                     .select("img firstName lastName state age gender occupation techStacks goals")
-                    // .skip(skip)
-                    // .limit(limit)
+            // .skip(skip)
+            // .limit(limit)
 
 
             res.json({
