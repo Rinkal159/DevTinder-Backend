@@ -79,6 +79,8 @@ const userSchema = new mongoose.Schema({
         },
         required: [true, "Tech Stack is required. e.g. Programming languages, Hackathons"]
     },
+
+    
     goals: {
         type: [String],
         validate: {
@@ -98,7 +100,7 @@ userSchema.index({ firstName: 1, lastName: 1 });
 // generate JWT token as id which will hide is the part of userschema.
 userSchema.methods.genJWT = async function () {
     const id = this._id;
-    const token = await jwt.sign({ _id: id }, process.env.JWT_SECRETKEY, { expiresIn: "1h" })
+    const token = await jwt.sign({ _id: id }, process.env.JWT_SECRETKEY, { expiresIn: "10h" })
 
     return token;
 }
@@ -106,7 +108,9 @@ userSchema.methods.genJWT = async function () {
 // verify password as we compare password which is the part of userschema
 userSchema.methods.verifyPassword = async function (userPassword) {
     const pw = this.passWord;
+    
     const passwordCheck = await bcrypt.compare(userPassword, pw);
+    
 
     return passwordCheck;
 }
