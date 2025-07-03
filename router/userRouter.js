@@ -5,13 +5,8 @@ const { User } = require("../model/model");
 const { ConnectionRequest } = require("../model/connectRequest")
 const userAuth = require("../middleware/auth");
 const cookieParser = require("cookie-parser");
-const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
 
 userRouter.use(cookieParser())
-
-const populateFilter = "firstName lastName";
-
 
 {
     //GET /user/receivedRequest
@@ -24,34 +19,20 @@ const populateFilter = "firstName lastName";
 
             // get all requests you received
             const yourRequests = await ConnectionRequest
-                .find({ receiverID: id, requestStatus: "interested" })
-                .populate("senderID", populateFilter)
-
-                console.log(yourRequests);
+                .find({ receiverID: id, requestStatus: "Interested" })
+                .select('senderID')
                 
 
-            let usersWhoSentRequests = [];
-            let interestedRequestsProfile = [];
+            let arr = [];
 
             yourRequests.forEach((req) => {
-                usersWhoSentRequests.push(req.senderID);
-                interestedRequestsProfile.push(req._id);
+                arr.push(req.senderID.toString());
             })
 
-            const numberOfUsers = usersWhoSentRequests.length;
+            const receivedRequests = await User.find({_id : {$in : arr}});
+            
+            res.json(receivedRequests);
 
-            // check zero received requests
-            if (numberOfUsers === 0) {
-                return res.json({
-                    message: `${loggedInUser.firstName}, You have received connection requests from ${numberOfUsers} dev`
-                })
-            }
-
-            res.json({
-                messgae: `${loggedInUser.firstName}, You have received connection requests from ${numberOfUsers} dev`,
-                interestedDev: usersWhoSentRequests,
-                interestedDevRequestProfile: interestedRequestsProfile
-            });
 
 
         } catch (err) {
@@ -71,33 +52,18 @@ const populateFilter = "firstName lastName";
 
             // get all requests you sent
             const yourRequests = await ConnectionRequest
-                .find({ senderID: id, requestStatus: "interested" })
-                .populate("receiverID", populateFilter)
+                .find({ senderID: id, requestStatus: "Interested" })
+                .select('receiverID')
 
-            let usersWhoReceivedRequests = [];
-            let interestedRequestsProfile = [];
-
+            let arr = [];
 
             yourRequests.forEach((req) => {
-                usersWhoReceivedRequests.push(req.receiverID)
-                interestedRequestsProfile.push(req._id);
-
+                arr.push(req.receiverID.toString());
             })
 
-            const numberOfUsers = usersWhoReceivedRequests.length;
-
-            // check zero sent requests
-            if (numberOfUsers === 0) {
-                return res.json({
-                    message: `${loggedInUser.firstName}, You have sent connection requests to ${numberOfUsers} dev`
-                })
-            }
-
-            res.json({
-                messgae: `${loggedInUser.firstName}, You have sent connection requests to ${numberOfUsers} dev`,
-                interestedDev: usersWhoReceivedRequests,
-                interestedDevRequestProfile: interestedRequestsProfile
-            });
+            const sentRequests = await User.find({_id : {$in : arr}});
+            
+            res.json(sentRequests);
 
 
         } catch (err) {
@@ -120,33 +86,24 @@ const populateFilter = "firstName lastName";
                     { receiverID: id },
                     { senderID: id }
                 ],
-                requestStatus: "accepted"
-            })
-                .populate("senderID", populateFilter)
-                .populate("receiverID", populateFilter)
+                requestStatus: "Accept"
+            }).select('senderID receiverID')
 
-            let connections = [];
+            let connectionsIDS = [];
 
             yourRequests.forEach((req) => {
-                if (req.senderID._id.toString() === id) {
-                    connections.push(req.receiverID)
+                if (req.senderID.toString() === id) {
+                    connectionsIDS.push(req.receiverID)
                 } else {
-                    connections.push(req.senderID)
+                    connectionsIDS.push(req.senderID)
                 }
 
             })
+            
 
-            // check zero connections
-            if (connections.length == 0) {
-                return res.json({
-                    message: `${loggedInUser.firstName}, You don't have any connection yet! Send connection requests, make connections!!`
-                })
-            }
+            const connections = await User.find({_id : {$in : connectionsIDS}})
 
-            res.json({
-                messgae: `${loggedInUser.firstName}, Your conenctions are successfully fetched!`,
-                connections: connections
-            });
+            res.json(connections);
 
 
         } catch (err) {
