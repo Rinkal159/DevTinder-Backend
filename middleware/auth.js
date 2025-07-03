@@ -1,37 +1,55 @@
-const jwt = require('jsonwebtoken');
+const { expressjwt: jwt } = require("express-jwt");
+const jwksRsa = require("jwks-rsa");
 const {User} = require("../model/model")
 
-async function userAuth(req, res, next) {
-    try {
-        const cookie = req.cookies;
-        const { token } = cookie;
-        
+const domain = "https://dev-e0ha8nb2m6yi1las.us.auth0.com/";
+const audience = "https://dev-e0ha8nb2m6yi1las.us.auth0.com/api/v2/";
 
-        if (!token) {
-            return res.status(401).json({
-                message : "Your session is expired. Please log in."
-            })
+const baseAuth = jwt({
+    secret: jwksRsa.expressJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `${domain}.well-known/jwks.json`,
+    }),
+    audience: audience,
+    issuer: domain,
+    algorithms: ["RS256"],
+    requestProperty: "auth",
+});
+
+
+const userAuth = async (req, res, next) => {
+
+    baseAuth(req, res, async (err) => {
+        if (err) return res.status(401).json({ message: "Unauthorized", error: err.message });
+
+        try {
+
+            const email =
+                req.auth?.["https://devtinder.com/email"] ||
+                req.auth?.email;
+
+            if (!email) {
+                return res.status(401).json({ message: "Email not found in token" });
+            }
+
+            const user = await User.findOne({ email: email });
+
+            if (!user) {
+                return res.status(404).json({ message: "User not found in database" });
+            }
+
+            req.id = user._id;
+            req.user = user;
+
+            next();
+
+        } catch (error) {
+            console.error("Auth middleware error:", error);
+            res.status(500).json({ message: "Server error in auth middleware" });
         }
-
-        const decodedData = await jwt.verify(token, process.env.JWT_SECRETKEY);
-        
-        const id = decodedData._id;
-
-        if (!id) {
-            throw new Error("User not found")
-        }
-
-        req.id = id;
-
-        const user = await User.findById(id);
-        req.user = user;
-
-        next();
-
-    } catch (err) {
-        res.status(400).send(`Something went wrong! ${err.message}`)
-    }
-
-}
+    });
+};
 
 module.exports = userAuth;
