@@ -3,10 +3,8 @@ const authRouter = express.Router();
 
 const { User } = require("../model/model");
 const { ConnectionRequest } = require("../model/connectRequest")
-const bcrypt = require("bcrypt");
 const userAuth = require("../middleware/auth");
 const cookieParser = require("cookie-parser")
-const { encryptPassword } = require("../helper validation funcs/validations")
 
 const { upload } = require("../middleware/multer")
 const uploadFileOnCloudinary = require("../utils/cloudinary")
@@ -15,11 +13,31 @@ authRouter.use(express.json());
 authRouter.use(cookieParser());
 
 {
+    authRouter.post("/existence", async(req, res) => {
+        try {
+            const email = req.body;
+            
+            const user = await User.findOne({ email : email.email })
+            
+            res.json(user);
+
+        } catch (err) {
+            res.status(400).json({
+                success : 'failed',
+                message : err.message
+            })
+        }
+
+    })
+}
+
+{
     // POST /signup
 
-    authRouter.post("/signup", upload.single('img'), async (req, res) => {
+    authRouter.post("/createProfile", upload.single('img'), async (req, res) => {
 
         try {
+            
 
             if (!req.file) {
                 res.status(400).json({
@@ -39,7 +57,10 @@ authRouter.use(cookieParser());
                 })
             }
 
-            const { firstName, lastName, email, passWord, img, state, age, gender, occupation, techStacks, isMarried, goals } = req.body;
+            const { firstName, lastName, email, img, state, age, gender, occupation, techStacks, isMarried, goals } = req.body;
+
+            console.log(firstName);
+            
 
             if (!Array.isArray(techStacks) && techStacks.length === 0) {
                 throw new Error(`Tech Stack is required.`)
@@ -48,15 +69,12 @@ authRouter.use(cookieParser());
                 throw new Error(`Goal is required.`)
             }
 
-            // Encrypt the password
-            const hashpw = await encryptPassword(passWord);
 
             const userData = new User({
                 img: imageURL,
                 firstName,
                 lastName,
                 email,
-                passWord: hashpw,
                 state,
                 age,
                 gender,
@@ -70,17 +88,6 @@ authRouter.use(cookieParser());
             await userData.save();
 
             const user = await User.findOne({ email: email });
-
-            // TOKEN
-            const token = await user.genJWT();
-
-            // COOKIE
-            res.cookie("token", token, {
-                maxAge: 36000 * 1000, //3600= 1 hr in second, 3600*1000 =1 hr in miliseconds
-                secure: true, //only send the cookies over HTTPS, not HTTP
-                httponly: true, //JavaScript cannot access this cookie
-                sameSite: "strict" //Only send cookies on same-site requests
-            });
 
 
             res.status(200).json({
@@ -97,92 +104,12 @@ authRouter.use(cookieParser());
     })
 }
 
-{
-    // POST /login
-
-    authRouter.post("/login", async (req, res, next) => {
-        try {
-            const { email, passWord } = req.body;
-
-            const emailCheck = await User.findOne({ email: email });
-
-
-            // calling email validation function
-            if (!emailCheck) {
-                throw new Error("Please check email and password.")
-            }
-
-
-            // calling password validation function
-            const result = await emailCheck.verifyPassword(passWord);
-
-
-
-            if (result) {
-
-                // TOKEN
-                const token = await emailCheck.genJWT();
-
-                // COOKIE
-                res.cookie("token", token, {
-                    maxAge: 36000 * 1000, //3600= 1 hr in second, 3600*1000 =1 hr in miliseconds
-                    secure: true, //only send the cookies over HTTPS, not HTTP
-                    httponly: true, //JavaScript cannot access this cookie
-                    sameSite: "strict" //Only send cookies on same-site requests
-                });
-
-                res.json({
-                    data: emailCheck
-
-                })
-
-
-            } else {
-                throw new Error(`Please check email and password.`)
-            }
-
-        } catch (err) {
-            res.status(400).json({
-                message: err.message
-            })
-        }
-    })
-}
-
-{
-    // POST //logout
-
-    authRouter.post("/logout", userAuth, async (req, res) => {
-        try {
-            res
-                .clearCookie("token", null, {
-                    path: '/',
-                    secure: true,
-                    httpOnly: true,
-                    sameSite: 'strict'
-                })
-                .json({
-                    message: "You're successfully logged out!"
-                })
-
-        } catch (err) {
-            res.status(400).send(`Something went wrong. ${err}`)
-        }
-    })
-}
 
 {
     // GET /user/feed
 
     authRouter.get("/user/feed", userAuth, async (req, res) => {
         try {
-            // let page = parseInt(req.query.page) || 1;
-            // let limit = parseInt(req.query.limit) || 10;
-            // let skip = (page - 1) * 10;
-
-            // if (limit > 10 || limit < 0) {
-            //     limit = 10;
-            // }
 
             const id = req.id;
             const user = req.user;
@@ -206,8 +133,6 @@ authRouter.use(cookieParser());
             const expectedUsers = await
                 User.find({ $and: [{ _id: { $nin: arr } }, { _id: { $ne: id } }] })
                     .select("img firstName lastName state age gender occupation techStacks goals")
-            // .skip(skip)
-            // .limit(limit)
 
 
             res.json({
