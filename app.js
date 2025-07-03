@@ -36,7 +36,7 @@ const userRouter = require("./router/userRouter.js")
 {
     // To update the schema
     updateMaritalField()
-
+    
 }
 
 connect()
