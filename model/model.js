@@ -34,15 +34,6 @@ const userSchema = new mongoose.Schema({
         match: [/.+\@.+\..+/, `{VALUE} is invalid`]
     },
 
-    passWord: {
-        type: String,
-        required: [true, "Password is required"],
-        validate(value) {
-            if (!validator.isStrongPassword(value)) {
-                throw new Error(`Password is weak : ${value} | Please make sure it has at least : 8 characters, 1 lowercase letter, 1 uppercase letter, 1 number and 1 symbol (like !, @, #, etc.)`)
-            }
-        }
-    },
 
     state: {
         type: String,
@@ -96,24 +87,6 @@ const userSchema = new mongoose.Schema({
 
 
 userSchema.index({ firstName: 1, lastName: 1 });
-
-// generate JWT token as id which will hide is the part of userschema.
-userSchema.methods.genJWT = async function () {
-    const id = this._id;
-    const token = await jwt.sign({ _id: id }, process.env.JWT_SECRETKEY, { expiresIn: "10h" })
-
-    return token;
-}
-
-// verify password as we compare password which is the part of userschema
-userSchema.methods.verifyPassword = async function (userPassword) {
-    const pw = this.passWord;
-    
-    const passwordCheck = await bcrypt.compare(userPassword, pw);
-    
-
-    return passwordCheck;
-}
 
 const User = mongoose.model('User', userSchema);
 module.exports = { User };
