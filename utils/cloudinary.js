@@ -7,13 +7,13 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadFileOnCloudinary = async (imageURL) => {
+const uploadFileOnCloudinary = async (localImageURL) => {
     try {
-        if (!imageURL) {
+        if (!localImageURL) {
             throw new Error(`URL not found`)
         }
 
-        const imageUpload = await cloudinary.uploader.upload(imageURL, {
+        const imageUpload = await cloudinary.uploader.upload(localImageURL, {
             overwrite: false,
             resource_type: "image",
             quality: "auto",
@@ -22,15 +22,15 @@ const uploadFileOnCloudinary = async (imageURL) => {
         })
         
         // unlink meaning delete the picture from system
-        fs.unlinkSync(imageURL)
+        fs.unlinkSync(localImageURL)
 
         // hosted URL by clodinary
         return imageUpload.secure_url;
 
     } catch (err) {
 
-        if (fs.existsSync(imageURL)) {
-            fs.unlinkSync(imageURL);
+        if (fs.existsSync(localImageURL)) {
+            fs.unlinkSync(localImageURL);
         }
 
         return null;
