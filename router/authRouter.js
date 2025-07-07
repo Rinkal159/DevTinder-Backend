@@ -15,9 +15,10 @@ authRouter.use(cookieParser());
 {
     authRouter.post("/existence", async(req, res) => {
         try {
-            const email = req.body;
+            const {email} = req.body;
+            console.log(email);
             
-            const user = await User.findOne({ email : email.email })
+            const user = await User.findOne({ email : email })
             
             res.json(user);
 
@@ -50,6 +51,8 @@ authRouter.use(cookieParser());
 
             // going to cloudinary
             const imageURL = await uploadFileOnCloudinary(localPath);
+            console.log('imageURL : ', imageURL);
+            
 
             if (!imageURL) {
                 res.status(400).json({
@@ -59,7 +62,6 @@ authRouter.use(cookieParser());
 
             const { firstName, lastName, email, img, state, age, gender, occupation, techStacks, isMarried, goals } = req.body;
 
-            console.log(firstName);
             
 
             if (!Array.isArray(techStacks) && techStacks.length === 0) {
