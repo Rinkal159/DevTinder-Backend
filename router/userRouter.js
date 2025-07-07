@@ -21,7 +21,7 @@ userRouter.use(cookieParser())
             const yourRequests = await ConnectionRequest
                 .find({ receiverID: id, requestStatus: "Interested" })
                 .select('senderID')
-                
+
 
             let arr = [];
 
@@ -29,8 +29,8 @@ userRouter.use(cookieParser())
                 arr.push(req.senderID.toString());
             })
 
-            const receivedRequests = await User.find({_id : {$in : arr}});
-            
+            const receivedRequests = await User.find({ _id: { $in: arr } });
+
             res.json(receivedRequests);
 
 
@@ -48,6 +48,7 @@ userRouter.use(cookieParser())
 
         try {
             const id = req.id;
+            
             const loggedInUser = req.user;
 
             // get all requests you sent
@@ -61,8 +62,8 @@ userRouter.use(cookieParser())
                 arr.push(req.receiverID.toString());
             })
 
-            const sentRequests = await User.find({_id : {$in : arr}});
-            
+            const sentRequests = await User.find({ _id: { $in: arr } });
+
             res.json(sentRequests);
 
 
@@ -78,7 +79,6 @@ userRouter.use(cookieParser())
     userRouter.get("/user/connections", userAuth, async (req, res) => {
         try {
             const id = req.id;
-            const loggedInUser = req.user;
 
             // find accepted request profile either you sent the request and receiver accepted or you received the request and accepted and made connection
             const yourRequests = await ConnectionRequest.find({
@@ -92,16 +92,16 @@ userRouter.use(cookieParser())
             let connectionsIDS = [];
 
             yourRequests.forEach((req) => {
-                if (req.senderID.toString() === id) {
+
+                if (req.senderID.toString() === id.toString()) {
                     connectionsIDS.push(req.receiverID)
                 } else {
                     connectionsIDS.push(req.senderID)
                 }
 
             })
-            
 
-            const connections = await User.find({_id : {$in : connectionsIDS}})
+            const connections = await User.find({ _id: { $in: connectionsIDS } })
 
             res.json(connections);
 
