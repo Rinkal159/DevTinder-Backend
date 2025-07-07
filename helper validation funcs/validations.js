@@ -10,4 +10,4 @@ const valodationToNotAllowInvalidFields = (allowedFieldsForUpdation, req) => {
     return invalidKeys;
 }
 
-module.exports = { valodationToNotAllowInvalidFields, checkDuplicationDuringUpdation };
+module.exports = { valodationToNotAllowInvalidFields };
