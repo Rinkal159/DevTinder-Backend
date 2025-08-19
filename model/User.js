@@ -1,8 +1,4 @@
 const mongoose = require("mongoose");
-const validator = require("validator")
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-
 
 const userSchema = new mongoose.Schema({
     img: {
@@ -28,7 +24,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Email is required"],
         unique: [true, `this email is already registered`],
-        sparse: true,
+        sparse: true,  // “Enforce uniqueness only when the field exists.” it means, sparse ignores null or unentered values, But if a value is provided, it must be unique.
         lowercase: true,
         trim: true,
         match: [/.+\@.+\..+/, `{VALUE} is invalid`]
@@ -43,7 +39,7 @@ const userSchema = new mongoose.Schema({
     age: {
         type: Number,
         required: [true, "Age is required"],
-        min: [0, "age must be greater than or equals to 0"]
+        min: [1, "age must be greater than 0"]
     },
 
     gender: {
@@ -71,7 +67,7 @@ const userSchema = new mongoose.Schema({
         required: [true, "Tech Stack is required. e.g. Programming languages, Hackathons"]
     },
 
-    
+
     goals: {
         type: [String],
         validate: {
