@@ -18,6 +18,18 @@ ____________________
 → express.json() is a middleware function built into Express.js that parses incoming JSON payloads and puts the parsed data into req.body.
 → for POST, It parses the collected data using JSON.parse().
 
+*** express.urlencoded() :
+__________________________
+
+→ express.urlencoded({extended : true});
+→ it is used to parse the URL encoded payloads typically got from form data.
+→ extended:true -> Uses the qs library to parse nested objects
+→ extended:false -> Uses the simpler querystring library 
+
+^ difference : 
+→ express.urlencoded(): Parses form data (application/x-www-form-urlencoded).
+→ express.json(): Parses JSON payloads (application/json).
+
 
 *** cookie-parser :
 ___________________
@@ -65,8 +77,17 @@ ___________
 → CORS error blocks cross origin requests meaning even port is diffrent, our frontend cannot connect with backend.
 → So, to allow cross origin request, cors middleware helps.
 
+^ const cors = require("cors");
+^ app.use(cors());
+
 → everything works fine But even with the cors, our token will not send to application cause cookie setup only allows to send token to secure sites(https)
 → thus we need to config the cors
+
+^ const cors = require("cors");
+^ app.use(cors({
+^     origin: "http://localhost:5173", 
+^    credentials: true
+^ }));
 
 → config : origin defines the frontend site to add that site into whitelist so that backend trust the frontend and send cookies.
 → credentials true makes the backend feel secure about frontend port.
@@ -108,7 +129,7 @@ _______________________
 
 ^ unique :
     → unique gives power to not accept two same email ids, if one is registred, then that one cannot register again.
-without trim() mongo will assume two same email ids are different, just because one has trailing spaceand one has not.
+without trim() mongo will assume two same email ids are different, just because one has trailing space and one has not.
 therefore , whenever you define unique, define trim too with strings.
 
 → if you want to enable validations during updatation, runValidators option need to be defined.
