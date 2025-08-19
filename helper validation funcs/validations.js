@@ -1,6 +1,3 @@
-const { User } = require("../model/model");
-const { ConnectionRequest } = require("../model/connectRequest")
-
 const valodationToNotAllowInvalidFields = (allowedFieldsForUpdation, req) => {
     const data = req.body;
     const keyOfData = Object.keys(data);
