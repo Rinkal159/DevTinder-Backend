@@ -129,7 +129,11 @@ _______________________
 
 ^ unique :
     → unique gives power to not accept two same email ids, if one is registred, then that one cannot register again.
+<<<<<<< HEAD
 without trim() mongo will assume two same email ids are different, just because one has trailing space and one has not.
+=======
+without trim() mongo will assume two same email ids are different, just because one has trailing spaceand one has not.
+>>>>>>> 9ff7b0162c0222ed79e7a23aa585b54709b04db3
 therefore , whenever you define unique, define trim too with strings.
 
 → if you want to enable validations during updatation, runValidators option need to be defined.

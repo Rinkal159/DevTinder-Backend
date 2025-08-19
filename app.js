@@ -6,6 +6,9 @@ const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv")
 dotenv.config(); // loads .env file into process.env
 
+const dotenv = require("dotenv")
+dotenv.config(); // loads .env file into process.env
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -38,7 +41,6 @@ connect()
         console.log("Database success");
         app.listen(process.env.PORT, () => {
             console.log("Server success");
-
         })
     })
     .catch((err) => console.log(err))

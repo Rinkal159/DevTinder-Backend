@@ -18,5 +18,4 @@ authRouter.post("/createProfile", upload.single('img'), signup);
 //* GET /user/feed
 authRouter.get("/user/feed", userAuth, feed)
 
-
 module.exports = authRouter;

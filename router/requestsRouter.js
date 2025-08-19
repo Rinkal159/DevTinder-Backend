@@ -18,5 +18,4 @@ requestsRouter.post("/request/review/:requestStatus/:senderID", userAuth, review
 //* DELETE /request/delete
 requestsRouter.delete("/request/:status/:receiverID", userAuth, deleteReq);
 
-
 module.exports = requestsRouter;
