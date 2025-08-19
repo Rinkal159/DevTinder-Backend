@@ -1,4 +1,4 @@
-const {User} = require("../model/model");
+const { User } = require("../model/User");
 
 async function updateMaritalField() {
     const users = await User.find({ maritalStatus: { $exists: true } });

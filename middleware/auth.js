@@ -1,6 +1,6 @@
 const { expressjwt: jwt } = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
-const {User} = require("../model/model")
+const { User } = require("../model/User")
 
 const domain = "https://dev-e0ha8nb2m6yi1las.us.auth0.com/";
 const audience = "https://dev-e0ha8nb2m6yi1las.us.auth0.com/api/v2/";
